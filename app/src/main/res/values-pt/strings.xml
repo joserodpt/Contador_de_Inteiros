@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Contador Inteiro</string>
+    <string name="settings">Definições</string>
+    <string name="hint_limit">Dica: 50, 200...</string>
+    <string name="setting_limit">Limite do Contador (vazio para não definir limite)</string>
+    <string name="setting_darkmode">Usar Modo Escuro</string>
+    <string name="save">Guardar</string>
+    <string name="limit">"Limite: "</string>
+    <string name="about">Acerca desta App</string>
+</resources>

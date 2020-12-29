@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Whole Counter</string>
+    <string name="settings">Settings</string>
+    <string name="hint_limit">Hint: 50, 200...</string>
+    <string name="setting_limit">Limit (empty to set no limit)</string>
+    <string name="setting_darkmode">Use Dark Mode</string>
+    <string name="save">Save</string>
+    <string name="limit">Limit:</string>
+    <string name="about">About this App</string>
+    <string name="app_credit">Developed by José Rodrigues © 2020\nThis app uses the followning libraries:\ncom.github.florent37:viewanimator\ncom.github.thekhaeng:pushdown-anim-click</string>
+</resources>
