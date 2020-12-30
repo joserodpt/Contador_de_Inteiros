@@ -2,6 +2,7 @@ package pt.josegamerpt.contadordepessoas;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -14,6 +15,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.github.florent37.viewanimator.ViewAnimator;
 import com.thekhaeng.pushdownanim.PushDownAnim;
 
+import cn.pedant.SweetAlert.SweetAlertDialog;
+
 import static pt.josegamerpt.contadordepessoas.AppUtils.setColor;
 
 public class MainActivity extends AppCompatActivity {
@@ -21,10 +24,14 @@ public class MainActivity extends AppCompatActivity {
     //limit
     public static Boolean limit = false;
     public static int limitMax;
+    public static SharedPreferences sharedpref;
+    public static SharedPreferences.Editor sharedprededitor;
     static TextView limitText;
     private static Activity main;
     TextView display;
     int counter = 0;
+    //asked
+    private Boolean asked = false;
     private int animDelay = 25;
 
     public static void setLimit(boolean b, int parseInt) {
@@ -36,6 +43,9 @@ public class MainActivity extends AppCompatActivity {
         } else {
             limitText.setVisibility(View.INVISIBLE);
         }
+        sharedprededitor.putBoolean("limit", b);
+        sharedprededitor.putInt("limitint", parseInt);
+        sharedprededitor.apply();
     }
 
     @Override
@@ -45,11 +55,24 @@ public class MainActivity extends AppCompatActivity {
 
         main = this;
 
+        sharedpref = getApplicationContext().getSharedPreferences("wholeCounter", 0);
+        sharedprededitor = sharedpref.edit();
+
         checkDark(getResources().getConfiguration());
 
         limitText = main.findViewById(R.id.limitText);
         display = findViewById(R.id.numberDisplay);
         display.setText(counter + "");
+        display.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                counter = 0;
+                display.setText(counter + "");
+                AppUtils.vibrate(MainActivity.this, 300);
+                return false;
+            }
+        });
+
 
         PushDownAnim.setPushDownAnimTo(findViewById(R.id.settingIcon))
                 .setScale(PushDownAnim.MODE_SCALE, 0.89f).setOnClickListener(new View.OnClickListener() {
@@ -74,6 +97,39 @@ public class MainActivity extends AppCompatActivity {
                 decrease();
             }
         });
+
+
+        //check last session
+
+        if (!asked) {
+            if (sharedpref.getInt("counter", 0) != 0) {
+                //ask for restore
+                final SweetAlertDialog ask = new SweetAlertDialog(this, SweetAlertDialog.NORMAL_TYPE);
+                ask.setTitleText(getApplicationContext().getString(R.string.restore_session));
+                ask.setCancelable(false);
+                ask.setCancelButton(getApplicationContext().getString(android.R.string.cancel), new SweetAlertDialog.OnSweetClickListener() {
+                    @Override
+                    public void onClick(SweetAlertDialog sweetAlertDialog) {
+                        sharedprededitor.putInt("counter", 0);
+                        sharedprededitor.apply();
+                        asked = true;
+                        ask.dismissWithAnimation();
+                    }
+                });
+                ask.setConfirmButton(getApplicationContext().getString(android.R.string.ok), new SweetAlertDialog.OnSweetClickListener() {
+                    @Override
+                    public void onClick(SweetAlertDialog sweetAlertDialog) {
+                        counter = sharedpref.getInt("counter", 0);
+                        display.setText(counter + "");
+                        setLimit(sharedpref.getBoolean("limit", false), sharedpref.getInt("limitint", 0));
+                        asked = true;
+                        ask.dismissWithAnimation();
+                    }
+                });
+                ask.show();
+
+            }
+        }
     }
 
     public void checkDark(Configuration config) {
@@ -96,6 +152,7 @@ public class MainActivity extends AppCompatActivity {
     public void onSaveInstanceState(Bundle savedInstanceState) {
         // Save the user's current game state
         savedInstanceState.putInt("countInt", counter);
+        savedInstanceState.putBoolean("asked", asked);
 
         // Always call the superclass so it can save the view hierarchy state
         super.onSaveInstanceState(savedInstanceState);
@@ -108,6 +165,8 @@ public class MainActivity extends AppCompatActivity {
 
         // Restore state members from saved instance
         counter = savedInstanceState.getInt("countInt");
+        asked = savedInstanceState.getBoolean("asked");
+
         display.setText(counter + "");
 
         if (limit) {
@@ -152,8 +211,14 @@ public class MainActivity extends AppCompatActivity {
                     .translationY(-50, 0)
                     .duration(animDelay)
                     .start();
+            registerNumber();
             AppUtils.vibrate(this, 50);
         }
+    }
+
+    private void registerNumber() {
+        sharedprededitor.putInt("counter", counter);
+        sharedprededitor.apply();
     }
 
     public void decrease() {
@@ -185,6 +250,7 @@ public class MainActivity extends AppCompatActivity {
                         .translationY(+50, 0)
                         .duration(animDelay)
                         .start();
+                registerNumber();
                 AppUtils.vibrate(this, 50);
             }
         } else {
