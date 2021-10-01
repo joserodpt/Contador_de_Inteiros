@@ -9,4 +9,5 @@
     <string name="about">About this App</string>
     <string name="app_credit">Coded by José Rodrigues © 2020\n\nThis App uses the followning libraries:\ncom.github.florent37:viewanimator\ncom.github.thekhaeng:pushdown-anim-click\ncom.github.f0ris.sweetalert:library\n\nSource-code available at: https://github.com/JoseGamerPT/Contador_de_Inteiros</string>
     <string name="restore_session">Do you want to restore the last session?</string>
+    <string name="vibrate">Use Vibration</string>
 </resources>

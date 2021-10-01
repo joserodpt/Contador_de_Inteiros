@@ -6,9 +6,9 @@
     <string name="setting_limit">Limite do Contador (vazio para não definir limite)</string>
     <string name="setting_darkmode">Usar Modo Escuro</string>
     <string name="save">Guardar</string>
-    <string name="limit">"Limite: "</string>
+    <string name="limit">⚠</string>
     <string name="about">Acerca desta App</string>
-    <string name="app_credit">Programada por José Rodrigues © 2020\n\nEsta App usa as seguintes bibliotecas:\ncom.github.florent37:viewanimator\ncom.github.thekhaeng:pushdown-anim-click\ncom.github.f0ris.sweetalert:library\n\nCódigo-fonte disponível em: https://github.com/JoseGamerPT/Contador_de_Inteiros</string>
+    <string name="app_credit">Programada por José Rodrigues © 2020\nPorte Wear OS © 2021\nEsta App usa as seguintes bibliotecas:\ncom.github.florent37:viewanimator\ncom.github.thekhaeng:pushdown-anim-click\n\nCódigo-fonte disponível em: https://github.com/JoseGamerPT/Contador_de_Inteiros</string>
     <string name="restore_session">Desejas reaver a última sessão?</string>
     <string name="vibrate">Usar Vibração</string>
 </resources>

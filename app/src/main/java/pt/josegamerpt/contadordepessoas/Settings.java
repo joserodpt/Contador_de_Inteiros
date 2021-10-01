@@ -1,18 +1,19 @@
 package pt.josegamerpt.contadordepessoas;
 
+import static pt.josegamerpt.contadordepessoas.AppUtils.setColor;
+import static pt.josegamerpt.contadordepessoas.R.id;
+import static pt.josegamerpt.contadordepessoas.R.layout;
+
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import static pt.josegamerpt.contadordepessoas.AppUtils.setColor;
-import static pt.josegamerpt.contadordepessoas.R.id;
-import static pt.josegamerpt.contadordepessoas.R.layout;
+import com.rm.rmswitch.RMSwitch;
 
 public class Settings extends AppCompatActivity {
 
@@ -23,6 +24,9 @@ public class Settings extends AppCompatActivity {
 
         final TextView ti = this.findViewById(id.limitinput);
         final Button b = this.findViewById(id.save);
+        final RMSwitch rm = this.findViewById(R.id.switchvib);
+        rm.addSwitchObserver((switchView, isChecked) -> MainActivity.registerVib(isChecked));
+        rm.setChecked(MainActivity.vibration);
 
         if (MainActivity.limit) {
             ti.setText(MainActivity.limitMax + "");
@@ -30,16 +34,13 @@ public class Settings extends AppCompatActivity {
 
         checkDark(getResources().getConfiguration());
 
-        b.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!TextUtils.isEmpty(ti.getText())) {
-                    MainActivity.setLimit(true, Integer.parseInt(ti.getText() + ""));
-                } else {
-                    MainActivity.setLimit(false, 0);
-                }
-                finish();
+        b.setOnClickListener(v -> {
+            if (!TextUtils.isEmpty(ti.getText())) {
+                MainActivity.setLimit(true, Integer.parseInt(ti.getText() + ""));
+            } else {
+                MainActivity.setLimit(false, 0);
             }
+            finish();
         });
 
     }

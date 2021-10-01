@@ -1,34 +1,35 @@
-package pt.josegamerpt.contadordepessoas;
-
-import static pt.josegamerpt.contadordepessoas.AppUtils.setColor;
+package pt.josegamerpt.contadorinteirowear;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.InputDeviceCompat;
+import androidx.core.view.MotionEventCompat;
+import androidx.core.view.ViewConfigurationCompat;
 
 import com.github.florent37.viewanimator.ViewAnimator;
 import com.thekhaeng.pushdownanim.PushDownAnim;
 
-import cn.pedant.SweetAlert.SweetAlertDialog;
+import pt.josegamerpt.contadorinteirowear.databinding.ActivityMainBinding;
 
-public class MainActivity extends AppCompatActivity {
 
-    //limit
-    public static Boolean vibration = true;
+public class MainActivity extends Activity {
+
     public static Boolean limit = false;
+    public static Boolean vibration = true;
     public static int limitMax;
     public static SharedPreferences sharedpref;
     public static SharedPreferences.Editor sharedprededitor;
     static TextView limitText;
     private static Activity main;
+    public ActivityMainBinding binding;
     TextView display;
     int counter = 0;
     //asked
@@ -40,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
         limitMax = parseInt;
         if (b) {
             limitText.setVisibility(View.VISIBLE);
-            limitText.setText(main.getResources().getString(R.string.limit) + limitMax);
+            limitText.setText(limitMax + main.getResources().getString(R.string.limit));
         } else {
             limitText.setVisibility(View.INVISIBLE);
         }
@@ -58,19 +59,17 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
         main = this;
 
         sharedpref = getApplicationContext().getSharedPreferences("wholeCounter", 0);
         sharedprededitor = sharedpref.edit();
 
-        vibration = sharedpref.getBoolean("vibrate", true);
-
-        checkDark(getResources().getConfiguration());
-
-        limitText = main.findViewById(R.id.limitText);
-        display = findViewById(R.id.numberDisplay);
+        limitText = binding.limitText;
+        display = binding.numberDisplay;
         display.setText(counter + "");
         display.setOnLongClickListener(v -> {
             counter = 0;
@@ -80,59 +79,47 @@ public class MainActivity extends AppCompatActivity {
             return false;
         });
 
+        vibration = sharedpref.getBoolean("vibrate", true);
 
-        PushDownAnim.setPushDownAnimTo(findViewById(R.id.settingIcon))
+        if (sharedpref.getInt("counter", 0) != 0) {
+            //ask for restore
+            counter = sharedpref.getInt("counter", 0);
+            display.setText(counter + "");
+            setLimit(sharedpref.getBoolean("limit", false), sharedpref.getInt("limitint", 0));
+            asked = true;
+        }
+
+        PushDownAnim.setPushDownAnimTo(binding.settingIcon)
                 .setScale(PushDownAnim.MODE_SCALE, 0.89f).setOnClickListener(v -> MainActivity.this.startActivity(new Intent(MainActivity.this, Settings.class)));
 
-        PushDownAnim.setPushDownAnimTo(findViewById(R.id.add))
+        PushDownAnim.setPushDownAnimTo(binding.add)
                 .setScale(PushDownAnim.MODE_SCALE, 0.89f).setOnClickListener(v -> increment());
 
-        PushDownAnim.setPushDownAnimTo(findViewById(R.id.sub))
+        PushDownAnim.setPushDownAnimTo(binding.sub)
                 .setScale(PushDownAnim.MODE_SCALE, 0.89f).setOnClickListener(v -> decrease());
 
+        binding.numberDisplay.requestFocus();
+        binding.numberDisplay.setOnGenericMotionListener((v, ev) -> {
+            if (ev.getAction() == MotionEvent.ACTION_SCROLL &&
+                    ev.isFromSource(InputDeviceCompat.SOURCE_ROTARY_ENCODER)
+            ) {
+                float delta = -ev.getAxisValue(MotionEventCompat.AXIS_SCROLL) *
+                        ViewConfigurationCompat.getScaledVerticalScrollFactor(
+                                ViewConfiguration.get(getApplicationContext()), getApplicationContext()
+                        );
 
-        //check last session
-
-        if (!asked) {
-            if (sharedpref.getInt("counter", 0) != 0) {
-                //ask for restore
-                final SweetAlertDialog ask = new SweetAlertDialog(this, SweetAlertDialog.NORMAL_TYPE);
-                ask.setTitleText(getApplicationContext().getString(R.string.restore_session));
-                ask.setCancelable(false);
-                ask.setCancelButton(getApplicationContext().getString(android.R.string.cancel), sweetAlertDialog -> {
-                    sharedprededitor.putInt("counter", 0);
-                    sharedprededitor.apply();
-                    asked = true;
-                    ask.dismissWithAnimation();
-                });
-                ask.setConfirmButton(getApplicationContext().getString(android.R.string.ok), sweetAlertDialog -> {
-                    counter = sharedpref.getInt("counter", 0);
-                    display.setText(counter + "");
-                    setLimit(sharedpref.getBoolean("limit", false), sharedpref.getInt("limitint", 0));
-                    asked = true;
-                    ask.dismissWithAnimation();
-                });
-                ask.show();
-
+                int round = Math.round(delta);
+                if (round > 0) {
+                    increment();
+                } else {
+                    decrease();
+                }
+                return true;
             }
-        }
+            return false;
+        });
 
-    }
 
-    public void checkDark(Configuration config) {
-        int currentNightMode = config.uiMode & Configuration.UI_MODE_NIGHT_MASK;
-        switch (currentNightMode) {
-            case Configuration.UI_MODE_NIGHT_NO:
-                //day
-                setColor(this, Color.WHITE);
-                ((TextView) findViewById(R.id.limitText)).setTextColor(Color.BLACK);
-                break;
-            case Configuration.UI_MODE_NIGHT_YES:
-                //night
-                setColor(this, Color.BLACK);
-                ((TextView) findViewById(R.id.limitText)).setTextColor(Color.WHITE);
-                break;
-        }
     }
 
     @Override
@@ -158,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (limit) {
             limitText.setVisibility(View.VISIBLE);
-            limitText.setText(main.getResources().getString(R.string.limit) + limitMax);
+            limitText.setText(limitMax + main.getResources().getString(R.string.limit));
         }
     }
 
@@ -188,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
             AppUtils.vibrate(this, 700);
             AppUtils.setColor(this, Color.RED);
         } else {
-            checkDark(getResources().getConfiguration());
+            AppUtils.setColor(this, Color.BLACK);
             counter++;
             display.setText(counter + "");
             ViewAnimator.animate(display)
@@ -227,7 +214,7 @@ public class MainActivity extends AppCompatActivity {
                 AppUtils.vibrate(this, 700);
                 AppUtils.setColor(this, Color.RED);
             } else {
-                checkDark(getResources().getConfiguration());
+                AppUtils.setColor(this, Color.BLACK);
                 counter--;
                 display.setText(counter + "");
                 ViewAnimator.animate(display)
@@ -241,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
                 AppUtils.vibrate(this, 50);
             }
         } else {
-            checkDark(getResources().getConfiguration());
+            AppUtils.setColor(this, Color.BLACK);
             counter--;
             display.setText(counter + "");
             ViewAnimator.animate(display)
@@ -253,19 +240,5 @@ public class MainActivity extends AppCompatActivity {
                     .start();
             AppUtils.vibrate(this, 50);
         }
-    }
-
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        switch (keyCode) {
-            case KeyEvent.KEYCODE_VOLUME_UP:
-                increment();
-                break;
-            case KeyEvent.KEYCODE_VOLUME_DOWN:
-                decrease();
-                break;
-        }
-
-        return true;
     }
 }
